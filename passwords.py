@@ -1,6 +1,6 @@
 import sqlite3
 
-MASTER_PASSWORD = "202@Engaja"
+MASTER_PASSWORD = "123456"
 
 senha = input("Insira sua senha master: ")
 if senha != MASTER_PASSWORD:
