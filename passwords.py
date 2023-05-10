@@ -1,5 +1,9 @@
 import sqlite3
 
+conn = sqlite3.connect('passwords.db')
+
+cursor = conn.cursor()
+
 MASTER_PASSWORD = "123456"
 
 senha = input("Insira sua senha master: ")
@@ -7,9 +11,12 @@ if senha != MASTER_PASSWORD:
     print("Senha Invalida Encerrando ... ")
     exit()
 
-conn = sqlite3.connect('passwords.db')
-
-cursor = conn.cursor()
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS master (
+    username TEXT NOT NULL,
+    master_password TEXT NOT NULL
+);
+''')
 
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS users (
@@ -39,12 +46,17 @@ def get_password(service):
         for user in cursor.fetchall():
             print(user)
 
-def insert_service(service, username, password):
-    cursor.execute(f'''
-        INSERT INTO users (service, username, password)
-        VALUES ('{service}', '{username}','{password}')
-    ''')
+def insert_service(conn, service, username, password):
+    # Verifica se o serviço já existe no banco de dados
+    cursor.execute(f"SELECT * FROM users WHERE username = '{username}'")
+    if cursor.fetchone():
+        print(f"O usuario {username} já está cadastrado.")
+        return
+
+    # Insere o novo registro no banco de dados
+    cursor.execute(f"INSERT INTO users (service, username, password) VALUES ('{service}', '{username}', '{password}')")
     conn.commit()
+    print(f"Senha do usuario {username} no serviço {service} cadastrada com sucesso.")
 
 def show_services():
     cursor.execute('''
@@ -66,7 +78,7 @@ while True:
         service = input('Qual o nome do serviço? ')
         username = input('Qual o nome do usuario? ')
         password = input('Qual a senha ? ')
-        insert_service(service, username, password)
+        insert_service(conn, service, username, password)
 
     if op == 'l':
         show_services()
